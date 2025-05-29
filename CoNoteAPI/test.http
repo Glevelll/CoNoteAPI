@@ -1,0 +1,13 @@
+POST http://localhost:8080/requests
+Content-Type: application/json
+
+{
+  "id": "324",
+  "idFile": "3455",
+  "title": "Another File",
+  "fromUser": "user789",
+  "toUsers": [
+    "user123",
+    "Глеб Никишин"
+  ]
+}

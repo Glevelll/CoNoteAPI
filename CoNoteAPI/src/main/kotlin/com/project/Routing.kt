@@ -11,9 +11,6 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
     routing {
-        get("/") {
-            call.respondText("Hello World!")
-        }
 
         post("/requests") {
             val request = call.receive<Requests>()
@@ -26,6 +23,7 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
 
         get("/requests/{login}") {
             val login = call.parameters["login"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Login is required")
+            println(">>> Получен логин: '$login'")
             val requests = requestsDao.getRequestsByUser(login)
             call.respond(HttpStatusCode.OK, requests)
         }
@@ -42,14 +40,17 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
         }
 
         // Новый маршрут для подтверждения заявки
-        post("/requests/{requestId}/confirm") {
-            val requestId = call.parameters["requestId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Request ID is required")
-            val login = call.request.queryParameters["login"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Login is required")
+        delete("/requests/{requestId}/decline") {
+            val requestId = call.parameters["requestId"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Request ID is required"))
 
-            if (requestsDao.confirmRequest(requestId, login)) {
-                call.respond(HttpStatusCode.OK, "Request confirmed")
+            val login = call.request.queryParameters["login"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Login is required"))
+
+            if (requestsDao.declineRequest(requestId, login)) {
+                call.respond(mapOf("message" to "Request declined"))
             } else {
-                call.respond(HttpStatusCode.NotFound, "Request not found or user not in to_users")
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "Request not found or user not in to_users"))
             }
         }
 
@@ -68,6 +69,16 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
             call.respond(HttpStatusCode.OK, files)
         }
 
+        get("/files/file/{id}") {
+            val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "File ID required")
+            val file = filesDao.getFileById(id)
+            if (file != null) {
+                call.respond(HttpStatusCode.OK, file)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "File not found")
+            }
+        }
+
         delete("/files/{id}") {
             val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "File ID is required")
             if (filesDao.deleteFile(id)) {
@@ -78,12 +89,12 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
         }
 
         patch("/files/{id}") {
-            val id = call.parameters["id"] ?: return@patch call.respond(HttpStatusCode.BadRequest, "File ID is required")
-            val updateRequest = call.receive<FileUpdateRequests>()
-            if (filesDao.updateFile(id, updateRequest)) {
+            val id = call.parameters["id"] ?: return@patch call.respond(HttpStatusCode.BadRequest, "ID required")
+            val update = call.receive<FileUpdateRequests>()
+            if (filesDao.updateFile(id, update.file)) {
                 call.respond(HttpStatusCode.OK, "File updated")
             } else {
-                call.respond(HttpStatusCode.NotFound, "File not found")
+                call.respond(HttpStatusCode.InternalServerError, "Update failed")
             }
         }
     }

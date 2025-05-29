@@ -4,9 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Files(
-    val idFile: String,
+    val id: String,
     val title: String,
     val file: String,
     val whoMain: String,
-    val collaborators: Map<String, String>
+    val collaborators: List<String>
 )

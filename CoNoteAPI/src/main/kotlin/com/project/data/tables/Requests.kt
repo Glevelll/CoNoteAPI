@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Requests(
-    val idRequest: String,
-    val file: String,
+    val id: String,
+    val idFile: String,
+    val title: String,
     val fromUser: String,
     val toUsers: List<String>
 )
