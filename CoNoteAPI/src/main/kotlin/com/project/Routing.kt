@@ -28,6 +28,13 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
             call.respond(HttpStatusCode.OK, requests)
         }
 
+//        get("/files/admin/{login}") {
+//            val login = call.parameters["login"]
+//                ?: return@get call.respond(HttpStatusCode.BadRequest, "Login is required")
+//            val files = filesDao.getFilesByAdmin(login)
+//            call.respond(HttpStatusCode.OK, files)
+//        }
+
         delete("/requests/{requestId}/decline") {
             val requestId = call.parameters["requestId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Request ID is required")
             val login = call.request.queryParameters["login"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Login is required")
@@ -40,17 +47,17 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
         }
 
         // Новый маршрут для подтверждения заявки
-        delete("/requests/{requestId}/decline") {
+        post("/requests/{requestId}/confirm") {
             val requestId = call.parameters["requestId"]
-                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Request ID is required"))
+                ?: return@post call.respond(HttpStatusCode.BadRequest, "Request ID is required")
 
             val login = call.request.queryParameters["login"]
-                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Login is required"))
+                ?: return@post call.respond(HttpStatusCode.BadRequest, "Login is required")
 
-            if (requestsDao.declineRequest(requestId, login)) {
-                call.respond(mapOf("message" to "Request declined"))
+            if (requestsDao.confirmRequest(requestId, login)) {
+                call.respond(HttpStatusCode.OK, "Request confirmed")
             } else {
-                call.respond(HttpStatusCode.NotFound, mapOf("error" to "Request not found or user not in to_users"))
+                call.respond(HttpStatusCode.NotFound, "Request not found or user not in to_users")
             }
         }
 

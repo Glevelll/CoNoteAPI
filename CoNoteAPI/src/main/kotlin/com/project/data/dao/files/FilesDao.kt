@@ -8,4 +8,5 @@ interface FilesDao {
     fun deleteFile(id: String): Boolean
     fun updateFile(id: String, file: String): Boolean
     fun getFileById(id: String): Files?
+//    fun getFilesByAdmin(login: String): List<Files>
 }

@@ -2,12 +2,11 @@ POST http://localhost:8080/requests
 Content-Type: application/json
 
 {
-  "id": "324",
-  "idFile": "3455",
-  "title": "Another File",
-  "fromUser": "user789",
+  "id": "012043-05",
+  "idFile": "5a6c2a39-790e-47a2-9602-477d2b5ecbd4",
+  "title": "Тест",
+  "fromUser": "Ivan Dragunov",
   "toUsers": [
-    "user123",
     "Глеб Никишин"
   ]
 }
