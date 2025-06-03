@@ -104,5 +104,20 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
                 call.respond(HttpStatusCode.InternalServerError, "Update failed")
             }
         }
+
+        delete("/files/{fileId}/collaborators/{collaborator}") {
+            val fileId = call.parameters["fileId"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "File ID is required")
+            val collaborator = call.parameters["collaborator"]
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "Collaborator is required")
+
+            if (filesDao.removeCollaborator(fileId, collaborator) &&
+                requestsDao.removeCollaboratorFromRequests(fileId, collaborator)) {
+                call.respond(HttpStatusCode.OK, "Collaborator removed")
+            } else {
+                call.respond(HttpStatusCode.InternalServerError, "Failed to remove collaborator")
+            }
+        }
+
     }
 }

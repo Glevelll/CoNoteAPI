@@ -148,6 +148,37 @@ class RequestsDaoImpl : RequestsDao {
         return true
     }
 
+    override fun removeCollaboratorFromRequests(fileId: String, collaborator: String): Boolean {
+        val sqlSelect = """
+        SELECT id_request, to_users 
+        FROM Requests 
+        WHERE id_file = ?
+    """
+        val requestsToUpdate = mutableListOf<Pair<String, List<String>>>()
+
+        executeQuery(sqlSelect, fileId) { resultSet ->
+            while (resultSet.next()) {
+                val requestId = resultSet.getString("id_request")
+                val toUsersRaw = resultSet.getString("to_users") ?: ""
+                val toUsers = toUsersRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() && it != collaborator }
+                requestsToUpdate.add(Pair(requestId, toUsers))
+            }
+        }
+
+        var allSucceeded = true
+        for ((requestId, updatedUsers) in requestsToUpdate) {
+            if (updatedUsers.isEmpty()) {
+                allSucceeded = allSucceeded && (executeUpdate("DELETE FROM Requests WHERE id_request = ?", requestId) > 0)
+            } else {
+                val updatedString = updatedUsers.joinToString(",")
+                allSucceeded = allSucceeded && (executeUpdate("UPDATE Requests SET to_users = ? WHERE id_request = ?", updatedString, requestId) > 0)
+            }
+        }
+
+        return allSucceeded
+    }
+
+
     private fun cleanupEmptyRequests() {
         val sql = "DELETE FROM Requests WHERE to_users = '' OR to_users IS NULL"
         executeUpdate(sql)

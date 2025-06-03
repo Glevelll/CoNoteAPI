@@ -7,4 +7,5 @@ interface RequestsDao {
     fun getRequestsByUser(login: String): List<Requests>
     fun declineRequest(requestId: String, login: String): Boolean
     fun confirmRequest(requestId: String, login: String): Boolean
+    fun removeCollaboratorFromRequests(fileId: String, collaborator: String): Boolean
 }

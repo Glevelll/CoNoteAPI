@@ -22,22 +22,23 @@ repositories {
 }
 
 dependencies {
+    // Ktor
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml-jvm")
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-client-core")
+    implementation("io.ktor:ktor-client-cio")
 
+    // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
 
+    // Postgres
     implementation("org.postgresql:postgresql:42.7.3")
 
-    implementation("io.ktor:ktor-server-content-negotiation")
-
-    implementation("io.ktor:ktor-client-core")
-    implementation("io.ktor:ktor-client-cio")
-    implementation("org.jsoup:jsoup:1.15.3")
-
+    // Tests
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

@@ -68,4 +68,13 @@ class FilesDaoImpl : FilesDao {
         val fileBytes = Base64.getDecoder().decode(fileBase64)
         return executeUpdate(sql, fileBytes, id) > 0
     }
+
+    override fun removeCollaborator(fileId: String, collaborator: String): Boolean {
+        val file = getFileById(fileId) ?: return false
+        val updatedCollaborators = file.collaborators.filter { it != collaborator }
+        val updatedJson = Json.encodeToString(updatedCollaborators)
+        val sql = "UPDATE Files SET collaborators = ? WHERE id_file = ?"
+        return executeUpdate(sql, updatedJson, fileId) > 0
+    }
+
 }

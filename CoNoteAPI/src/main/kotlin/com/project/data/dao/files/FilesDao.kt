@@ -9,4 +9,5 @@ interface FilesDao {
     fun updateFile(id: String, file: String): Boolean
     fun getFileById(id: String): Files?
 //    fun getFilesByAdmin(login: String): List<Files>
+    fun removeCollaborator(fileId: String, collaborator: String): Boolean
 }

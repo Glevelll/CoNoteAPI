@@ -1,12 +1,12 @@
-POST http://localhost:8080/requests
+POST http://localhost:8080/files
 Content-Type: application/json
 
 {
-  "id": "012043-05",
-  "idFile": "5a6c2a39-790e-47a2-9602-477d2b5ecbd4",
-  "title": "Тест",
-  "fromUser": "Ivan Dragunov",
-  "toUsers": [
-    "Глеб Никишин"
-  ]
+  "title": "Test",
+  "file": "",
+  "whoMain": "Глеб Никишин",
+  "collaborators": [
+    "Иван Вано"
+  ],
+  "id": "3a6c2a39-790e-47a2-9602-477d2b5ecbd4"
 }

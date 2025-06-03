@@ -10,3 +10,17 @@ data class Files(
     val whoMain: String,
     val collaborators: List<String>
 )
+
+@Serializable
+data class Requests(
+    val id: String,
+    val idFile: String,
+    val title: String,
+    val fromUser: String,
+    val toUsers: List<String>
+)
+
+@Serializable
+data class FileUpdateRequests(
+    val file: String
+)
