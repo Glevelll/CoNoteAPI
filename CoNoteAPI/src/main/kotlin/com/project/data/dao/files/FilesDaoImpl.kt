@@ -5,38 +5,29 @@ import com.project.domain.executeQuery
 import com.project.domain.executeUpdate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.sql.ResultSet
 import java.util.*
 
 class FilesDaoImpl : FilesDao {
+
     override fun createFile(file: Files): Boolean {
         val sql = """
-        INSERT INTO Files (id_file, title, file, who_main, collaborators)
-        VALUES (?, ?, ?, ?, ?)
-    """
+            INSERT INTO Files (id_file, title, file, who_main, collaborators)
+            VALUES (?, ?, ?, ?, ?)
+        """
         val fileBytes = Base64.getDecoder().decode(file.file)
         val collaboratorsJson = Json.encodeToString(file.collaborators)
         return executeUpdate(sql, file.id, file.title, fileBytes, file.whoMain, collaboratorsJson) > 0
     }
 
-    override fun getFilesByUser(login: String): List<Files> {
-        val sql = """
-        SELECT * FROM Files 
-        WHERE who_main = ? OR collaborators LIKE ?
-    """
-        val files = mutableListOf<Files>()
-        executeQuery(sql, login, "%$login%") { resultSet ->
-            while (resultSet.next()) {
-                val id = resultSet.getString("id_file")
-                val title = resultSet.getString("title")
-                val fileBytes = resultSet.getBytes("file")
-                val fileBase64 = Base64.getEncoder().encodeToString(fileBytes)
-                val whoMain = resultSet.getString("who_main")
-                val collaboratorsJson = resultSet.getString("collaborators")
-                val collaborators = Json.decodeFromString<List<String>>(collaboratorsJson)
-                files.add(Files(id, title, fileBase64, whoMain, collaborators))
-            }
-        }
-        return files
+    override fun getFilesByCollaborator(login: String): List<Files> {
+        val sql = "SELECT * FROM Files WHERE collaborators LIKE ?"
+        return getFilesByQuery(sql, "%$login%")
+    }
+
+    override fun getFilesByMainOwner(login: String): List<Files> {
+        val sql = "SELECT * FROM Files WHERE who_main = ?"
+        return getFilesByQuery(sql, login)
     }
 
     override fun getFileById(id: String): Files? {
@@ -44,19 +35,11 @@ class FilesDaoImpl : FilesDao {
         var file: Files? = null
         executeQuery(sql, id) { resultSet ->
             if (resultSet.next()) {
-                val idFile = resultSet.getString("id_file")
-                val title = resultSet.getString("title")
-                val fileBytes = resultSet.getBytes("file")
-                val fileBase64 = Base64.getEncoder().encodeToString(fileBytes)
-                val whoMain = resultSet.getString("who_main")
-                val collaboratorsJson = resultSet.getString("collaborators")
-                val collaborators = Json.decodeFromString<List<String>>(collaboratorsJson)
-                file = Files(idFile, title, fileBase64, whoMain, collaborators)
+                file = mapResultSetToFile(resultSet)
             }
         }
         return file
     }
-
 
     override fun deleteFile(id: String): Boolean {
         val sql = "DELETE FROM Files WHERE id_file = ?"
@@ -77,4 +60,24 @@ class FilesDaoImpl : FilesDao {
         return executeUpdate(sql, updatedJson, fileId) > 0
     }
 
+    private fun getFilesByQuery(sql: String, vararg params: Any): List<Files> {
+        val files = mutableListOf<Files>()
+        executeQuery(sql, *params) { resultSet ->
+            while (resultSet.next()) {
+                files.add(mapResultSetToFile(resultSet))
+            }
+        }
+        return files
+    }
+
+    private fun mapResultSetToFile(resultSet: ResultSet): Files {
+        val id = resultSet.getString("id_file")
+        val title = resultSet.getString("title")
+        val fileBytes = resultSet.getBytes("file")
+        val fileBase64 = Base64.getEncoder().encodeToString(fileBytes)
+        val whoMain = resultSet.getString("who_main")
+        val collaboratorsJson = resultSet.getString("collaborators")
+        val collaborators = Json.decodeFromString<List<String>>(collaboratorsJson)
+        return Files(id, title, fileBase64, whoMain, collaborators)
+    }
 }

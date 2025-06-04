@@ -11,7 +11,6 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
     routing {
-
         post("/requests") {
             val request = call.receive<Requests>()
             if (requestsDao.createRequest(request)) {
@@ -23,17 +22,9 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
 
         get("/requests/{login}") {
             val login = call.parameters["login"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Login is required")
-            println(">>> Получен логин: '$login'")
             val requests = requestsDao.getRequestsByUser(login)
             call.respond(HttpStatusCode.OK, requests)
         }
-
-//        get("/files/admin/{login}") {
-//            val login = call.parameters["login"]
-//                ?: return@get call.respond(HttpStatusCode.BadRequest, "Login is required")
-//            val files = filesDao.getFilesByAdmin(login)
-//            call.respond(HttpStatusCode.OK, files)
-//        }
 
         delete("/requests/{requestId}/decline") {
             val requestId = call.parameters["requestId"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Request ID is required")
@@ -46,7 +37,6 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
             }
         }
 
-        // Новый маршрут для подтверждения заявки
         post("/requests/{requestId}/confirm") {
             val requestId = call.parameters["requestId"]
                 ?: return@post call.respond(HttpStatusCode.BadRequest, "Request ID is required")
@@ -72,7 +62,14 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
 
         get("/files/{login}") {
             val login = call.parameters["login"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Login is required")
-            val files = filesDao.getFilesByUser(login)
+            val isAdmin = call.request.queryParameters["isAdmin"]?.toBooleanStrictOrNull() ?: false
+
+            val files = if (isAdmin) {
+                filesDao.getFilesByMainOwner(login)
+            } else {
+                filesDao.getFilesByCollaborator(login)
+            }
+
             call.respond(HttpStatusCode.OK, files)
         }
 
@@ -118,6 +115,5 @@ fun Application.configureRouting(filesDao: FilesDao, requestsDao: RequestsDao) {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to remove collaborator")
             }
         }
-
     }
 }

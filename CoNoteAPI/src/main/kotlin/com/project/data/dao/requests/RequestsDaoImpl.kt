@@ -56,7 +56,6 @@ class RequestsDaoImpl : RequestsDao {
         executeQuery(sqlSelect, requestId) { resultSet ->
             if (resultSet.next()) {
                 val toUsersString = resultSet.getString("to_users") ?: ""
-                // Нормализуем логин (убираем пробелы для сравнения)
                 currentToUsers.addAll(toUsersString.split(",").map { it.trim().replace(" ", "") })
             }
         }
